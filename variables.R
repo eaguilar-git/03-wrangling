@@ -25,27 +25,30 @@
     select(
       hh_id, age,   # items I want
       hv201:hv215,  # range of vars I want
-      -hv213.       # don't want this
+      -hv213       # don't want this
     )
   
 # Select cases (to keep)
   df3 <-
     df %>%
     filter(
-      Q100 == 1,  # males only
-      Q1   <= 30  # check: is this a good idea?
+      sex_binary == "male",  # males only -- vertical line | is or and & is and-- , assumes &
+      age <= 10  # check: is this a good idea?
     ) 
   
-    rm(df2, df3)
+    rm(df2, df3) ## these would delete the 2 dfs i created
     
 # mutate basics ------------------  
-# Create columns
+# Create columns 
+    # mutuate creates new columns / adds new variables that we want
   df2 <-
     df %>%
     mutate(
       rural = if_else(hv025 == 'rural', 1, 0),
       age_months = age * 12,
-      age_dev = age - median(age, na.rm = T)
+      age_dev = age - median(age, na.rm = T),
+      .keep = "none",
+      .before = 1,
     )
     
 # Place the columns
@@ -75,7 +78,7 @@
       watEx1 = as.numeric(water_mins), # changes strings to NA
       waterFetchMins = case_when(
         water_mins == 'on premises' ~ 0,
-        water_mins == '999' ~ NA, 
+        water_mins %in% c('990', "don't know") ~ NA, 
         TRUE ~ as.numeric(water_mins)
       ),
       .keep = 'used'
@@ -103,7 +106,9 @@
     )
   
 # Factors and labels -------------  
-# Relevel
+count(df, hh_income)
+  
+# sequence a factor variable
   df2 <-
     df %>%
     mutate(
@@ -130,8 +135,9 @@
   df2 <-
     df %>%
     mutate(
-      across(where(is.character), ~na_if(.x, '9'))
+      across(where(is.character), ~na_if(.x, '9')) ### when you want everything to be numeric!
     )
+  ## look into what .x does
   
 # Grouping -----------------------
 # Aggregate: group and summarize
